@@ -36,11 +36,7 @@ private:
     void checkClientsConnections();
     HttpMessage parseHttpRequest(Connection &client);
 
-public:
-
-    void start();
-
-    Proxy(int, sockaddr_in);
+    void removeServerConnection(Connection& connection);
 
     void checkRequest(HttpMessage &request);
 
@@ -58,13 +54,29 @@ public:
 
     bool checkRecv(Connection &connection);
 
-    void receiveData(Connection &connection, bool isServer);
+    int receiveData(Connection &connection, char* buf);
 
-    void checkServerResponse(const char* URL, char *response, int responseLength, int socketFd);
+    void checkServerResponse(const char* URL, char *response, int responseLength);
 
     bool isCorrectResponseStatus(const char* URL, char *response, int responseLength);
 
     bool checkForErrors(Connection &connection);
 
-    void removeClient(Connection &connection);
+    void removeClientConnection(Connection &connection);
+
+    void notifyClientsAboutError(const char *URL, const char *error);
+
+public:
+
+    void start();
+
+    Proxy(int, sockaddr_in);
+
+    void prepareClientsToWrite(const char *URL);
+
+    void receiveDataFromServer(Connection &connection);
+
+    void receiveDataFromClient(Connection &connection);
+
+    void handleClientDataReceive(Connection &clientConnection);
 };

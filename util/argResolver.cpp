@@ -7,8 +7,8 @@
 #include "argResolver.h"
 #include "../exceptions/wrongArgumentException.h"
 
-// char* SERVER_ADDRESS = "127.0.0.1";
-char* SERVER_ADDRESS = "188.226.137.35";
+ char* SERVER_ADDRESS = "84.237.52.20";
+//char* SERVER_ADDRESS = "188.226.137.35";
 
 // for solarka 
 

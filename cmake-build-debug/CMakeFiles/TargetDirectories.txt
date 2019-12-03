@@ -1,0 +1,3 @@
+/home/tigrulya/CLionProjects/cacheProxy/cmake-build-debug/CMakeFiles/rebuild_cache.dir
+/home/tigrulya/CLionProjects/cacheProxy/cmake-build-debug/CMakeFiles/cacheProxy.dir
+/home/tigrulya/CLionProjects/cacheProxy/cmake-build-debug/CMakeFiles/edit_cache.dir

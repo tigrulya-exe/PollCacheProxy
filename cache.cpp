@@ -18,11 +18,7 @@ void cache::addData(std::string url, char *newData, int newDataLength) {
 }
 
 bool cache::cacheNodeReady(const char* url) {
-    if(url == nullptr || !contains(url)){
-        return true;
-    }
-
-    return cacheReady[url];
+    return !contains(url) ? false : cacheReady[url];
 }
 
 void cache::setNodeReady(const std::string &url, bool isReady) {
