@@ -68,16 +68,16 @@ struct phr_chunked_decoder {
 
 /* the function rewrites the buffer given as (buf, bufsz) removing the chunked-
  * encoding headers.  When the function returns without an error, bufsz is
- * updated to the length of the decoded data available.  Applications should
+ * updated to the length of the decoded buffer available.  Applications should
  * repeatedly call the function while it returns -2 (incomplete) every time
- * supplying newly arrived data.  If the end of the chunked-encoded data is
+ * supplying newly arrived buffer.  If the end of the chunked-encoded buffer is
  * found, the function returns a non-negative number indicating the number of
  * octets left undecoded at the tail of the supplied buffer.  Returns -1 on
  * error.
  */
 ssize_t phr_decode_chunked(struct phr_chunked_decoder *decoder, char *buf, size_t *bufsz);
 
-/* returns if the chunked decoder is in middle of chunked data */
+/* returns if the chunked decoder is in middle of chunked buffer */
 int phr_decode_chunked_is_in_data(struct phr_chunked_decoder *decoder);
 
 #ifdef __cplusplus

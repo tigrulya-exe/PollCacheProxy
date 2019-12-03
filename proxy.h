@@ -5,51 +5,66 @@
 #include <poll.h>
 #include <map>
 #include <netinet/in.h>
-#include "connection.h"
 #include "cache.h"
 #include "httpParser/httpParser.h"
-#include "contexts/ClientContext.h"
+#include "models/HttpMessage.h"
+#include "models/Connection.h"
 
 
-class TcpProxy{
+class Proxy{
 private:
     static const int ACCEPT_INDEX = 0;
     static const int MAX_CONNECTIONS = 510;
+    static const int BUF_SIZE = 32768;
 
     std::vector<pollfd> pollFds;
-    std::vector<ClientContext> clientContexts;
-    std::vector<ServerContext> serverContexts;
-//    std::list<Connection> connections;
-//    std::map<std::string, ConnectionContext> serverContexts;
-//    std::map<std::string, std::vector<ConnectionContext>> cacheClients;
-//    std::map<ConnectionContext, std::string> clientUrls;
+    std::vector<Connection> clientConnections;
+    std::vector<Connection> serverConnections;
+    // key - socket fd, value - offset
+    std::map<int, int> cacheOffsets;
+    // key - socket fd, value - error message
+    std::map<int, char*> errors;
 
-    cache cache;
+    cache cacheNodes;
     sockaddr_in serverAddress;
     int portToListen;
 
-//    void checkClient(ConnectionContext&, ConnectionContext&);
-    void atError(std::_List_iterator<Connection>&);
+//    void atError(std::_List_iterator<Connection>&);
     int initProxySocket();
     void initAddress(sockaddr_in*, int);
-    void checkConnections();
-    void removePollFd(int, int);
-    void checkPollFdIndex(ConnectionContext& ,int);
     void addNewConnection(int);
-    bool checkPollFd(pollfd&, ConnectionContext&, ConnectionContext&);
-//    bool checkRecv(ConnectionContext&, pollfd&);
-    void checkSend(ConnectionContext&, ConnectionContext&, pollfd&);
-    void parseHttpRequest(ConnectionContext& );
-    void checkUrl(char* ,ConnectionContext& );
-    void closeSockets();
-    void checkClients();
+    void checkClientsConnections();
+    HttpMessage parseHttpRequest(Connection &client);
+
 public:
+
     void start();
 
-    TcpProxy(int, sockaddr_in);
+    Proxy(int, sockaddr_in);
 
-    void checkClient(const ConnectionContext &clientContext);
+    void checkRequest(HttpMessage &request);
 
-    bool checkRecv(ConnectionContext &recvContext);
+    Connection initServerConnection(Connection &);
 
+    void checkServerConnections();
+
+    bool isNewPathRequest(Connection &clientConnection);
+
+    bool checkSend(Connection &connection);
+
+    void sendDataFromCache(Connection &connection);
+
+    void sendRequestToServer(Connection &serverConnection);
+
+    bool checkRecv(Connection &connection);
+
+    void receiveData(Connection &connection, bool isServer);
+
+    void checkServerResponse(const char* URL, char *response, int responseLength, int socketFd);
+
+    bool isCorrectResponseStatus(const char* URL, char *response, int responseLength);
+
+    bool checkForErrors(Connection &connection);
+
+    void removeClient(Connection &connection);
 };
