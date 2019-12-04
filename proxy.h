@@ -5,13 +5,19 @@
 #include <poll.h>
 #include <map>
 #include <netinet/in.h>
-#include "cache.h"
+#include "Cache.h"
 #include "httpParser/httpParser.h"
-#include "models/HttpMessage.h"
 #include "models/Connection.h"
+#include "models/HttpRequest.h"
 
 
 class Proxy{
+
+public:
+    void start();
+
+    Proxy(int, sockaddr_in);
+
 private:
     static const int ACCEPT_INDEX = 0;
     static const int MAX_CONNECTIONS = 510;
@@ -25,20 +31,21 @@ private:
     // key - socket fd, value - error message
     std::map<int, char*> errors;
 
-    cache cacheNodes;
+    Cache cacheNodes;
     sockaddr_in serverAddress;
     int portToListen;
 
-//    void atError(std::_List_iterator<Connection>&);
     int initProxySocket();
+
     void initAddress(sockaddr_in*, int);
+
     void addNewConnection(int);
+
     void checkClientsConnections();
-    HttpMessage parseHttpRequest(Connection &client);
+
+    HttpRequest parseHttpRequest(Connection &client);
 
     void removeServerConnection(Connection& connection);
-
-    void checkRequest(HttpMessage &request);
 
     Connection initServerConnection(Connection &);
 
@@ -66,12 +73,6 @@ private:
 
     void notifyClientsAboutError(const char *URL, const char *error);
 
-public:
-
-    void start();
-
-    Proxy(int, sockaddr_in);
-
     void prepareClientsToWrite(const char *URL);
 
     void receiveDataFromServer(Connection &connection);
@@ -79,4 +80,8 @@ public:
     void receiveDataFromClient(Connection &connection);
 
     void handleClientDataReceive(Connection &clientConnection);
+
+    void checkRequest(HttpRequest &request);
+
+    void removeConnection(Connection &connection);
 };

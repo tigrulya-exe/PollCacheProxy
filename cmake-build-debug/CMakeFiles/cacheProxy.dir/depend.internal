@@ -4,25 +4,24 @@
 CMakeFiles/cacheProxy.dir/httpParser/httpParser.c.o
  /home/tigrulya/CLionProjects/cacheProxy/httpParser/httpParser.c
  /home/tigrulya/CLionProjects/cacheProxy/httpParser/httpParser.h
-CMakeFiles/cacheProxy.dir/cache.cpp.o
- /home/tigrulya/CLionProjects/cacheProxy/cache.cpp
- /home/tigrulya/CLionProjects/cacheProxy/cache.h
+CMakeFiles/cacheProxy.dir/Cache.cpp.o
+ /home/tigrulya/CLionProjects/cacheProxy/Cache.cpp
+ /home/tigrulya/CLionProjects/cacheProxy/Cache.h
 CMakeFiles/cacheProxy.dir/main.cpp.o
- /home/tigrulya/CLionProjects/cacheProxy/cache.h
+ /home/tigrulya/CLionProjects/cacheProxy/Cache.h
  /home/tigrulya/CLionProjects/cacheProxy/exceptions/wrongArgumentException.h
  /home/tigrulya/CLionProjects/cacheProxy/httpParser/httpParser.h
  /home/tigrulya/CLionProjects/cacheProxy/main.cpp
  /home/tigrulya/CLionProjects/cacheProxy/models/Connection.h
- /home/tigrulya/CLionProjects/cacheProxy/models/HttpMessage.h
+ /home/tigrulya/CLionProjects/cacheProxy/models/HttpRequest.h
  /home/tigrulya/CLionProjects/cacheProxy/proxy.h
  /home/tigrulya/CLionProjects/cacheProxy/util/argResolver.h
 CMakeFiles/cacheProxy.dir/proxy.cpp.o
- /home/tigrulya/CLionProjects/cacheProxy/cache.h
+ /home/tigrulya/CLionProjects/cacheProxy/Cache.h
  /home/tigrulya/CLionProjects/cacheProxy/exceptions/socketClosedException.h
- /home/tigrulya/CLionProjects/cacheProxy/exceptions/unsupportedMethodException.h
  /home/tigrulya/CLionProjects/cacheProxy/httpParser/httpParser.h
  /home/tigrulya/CLionProjects/cacheProxy/models/Connection.h
- /home/tigrulya/CLionProjects/cacheProxy/models/HttpMessage.h
+ /home/tigrulya/CLionProjects/cacheProxy/models/HttpRequest.h
  /home/tigrulya/CLionProjects/cacheProxy/proxy.cpp
  /home/tigrulya/CLionProjects/cacheProxy/proxy.h
 CMakeFiles/cacheProxy.dir/serverContext.cpp.o

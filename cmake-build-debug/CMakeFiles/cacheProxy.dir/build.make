@@ -109,18 +109,18 @@ CMakeFiles/cacheProxy.dir/proxy.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/cacheProxy.dir/proxy.cpp.s"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/tigrulya/CLionProjects/cacheProxy/proxy.cpp -o CMakeFiles/cacheProxy.dir/proxy.cpp.s
 
-CMakeFiles/cacheProxy.dir/cache.cpp.o: CMakeFiles/cacheProxy.dir/flags.make
-CMakeFiles/cacheProxy.dir/cache.cpp.o: ../cache.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/tigrulya/CLionProjects/cacheProxy/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object CMakeFiles/cacheProxy.dir/cache.cpp.o"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/cacheProxy.dir/cache.cpp.o -c /home/tigrulya/CLionProjects/cacheProxy/cache.cpp
+CMakeFiles/cacheProxy.dir/Cache.cpp.o: CMakeFiles/cacheProxy.dir/flags.make
+CMakeFiles/cacheProxy.dir/Cache.cpp.o: ../Cache.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/tigrulya/CLionProjects/cacheProxy/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object CMakeFiles/cacheProxy.dir/Cache.cpp.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/cacheProxy.dir/Cache.cpp.o -c /home/tigrulya/CLionProjects/cacheProxy/Cache.cpp
 
-CMakeFiles/cacheProxy.dir/cache.cpp.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/cacheProxy.dir/cache.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/tigrulya/CLionProjects/cacheProxy/cache.cpp > CMakeFiles/cacheProxy.dir/cache.cpp.i
+CMakeFiles/cacheProxy.dir/Cache.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/cacheProxy.dir/Cache.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/tigrulya/CLionProjects/cacheProxy/Cache.cpp > CMakeFiles/cacheProxy.dir/Cache.cpp.i
 
-CMakeFiles/cacheProxy.dir/cache.cpp.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/cacheProxy.dir/cache.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/tigrulya/CLionProjects/cacheProxy/cache.cpp -o CMakeFiles/cacheProxy.dir/cache.cpp.s
+CMakeFiles/cacheProxy.dir/Cache.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/cacheProxy.dir/Cache.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/tigrulya/CLionProjects/cacheProxy/Cache.cpp -o CMakeFiles/cacheProxy.dir/Cache.cpp.s
 
 CMakeFiles/cacheProxy.dir/serverContext.cpp.o: CMakeFiles/cacheProxy.dir/flags.make
 CMakeFiles/cacheProxy.dir/serverContext.cpp.o: serverContext.cpp
@@ -141,7 +141,7 @@ cacheProxy_OBJECTS = \
 "CMakeFiles/cacheProxy.dir/httpParser/httpParser.c.o" \
 "CMakeFiles/cacheProxy.dir/util/argResolver.cpp.o" \
 "CMakeFiles/cacheProxy.dir/proxy.cpp.o" \
-"CMakeFiles/cacheProxy.dir/cache.cpp.o" \
+"CMakeFiles/cacheProxy.dir/Cache.cpp.o" \
 "CMakeFiles/cacheProxy.dir/serverContext.cpp.o"
 
 # External object files for target cacheProxy
@@ -151,7 +151,7 @@ cacheProxy: CMakeFiles/cacheProxy.dir/main.cpp.o
 cacheProxy: CMakeFiles/cacheProxy.dir/httpParser/httpParser.c.o
 cacheProxy: CMakeFiles/cacheProxy.dir/util/argResolver.cpp.o
 cacheProxy: CMakeFiles/cacheProxy.dir/proxy.cpp.o
-cacheProxy: CMakeFiles/cacheProxy.dir/cache.cpp.o
+cacheProxy: CMakeFiles/cacheProxy.dir/Cache.cpp.o
 cacheProxy: CMakeFiles/cacheProxy.dir/serverContext.cpp.o
 cacheProxy: CMakeFiles/cacheProxy.dir/build.make
 cacheProxy: CMakeFiles/cacheProxy.dir/link.txt

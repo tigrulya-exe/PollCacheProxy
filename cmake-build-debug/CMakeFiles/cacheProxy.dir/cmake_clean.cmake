@@ -1,5 +1,5 @@
 file(REMOVE_RECURSE
-  "CMakeFiles/cacheProxy.dir/cache.cpp.o"
+  "CMakeFiles/cacheProxy.dir/Cache.cpp.o"
   "CMakeFiles/cacheProxy.dir/httpParser/httpParser.c.o"
   "CMakeFiles/cacheProxy.dir/main.cpp.o"
   "CMakeFiles/cacheProxy.dir/proxy.cpp.o"

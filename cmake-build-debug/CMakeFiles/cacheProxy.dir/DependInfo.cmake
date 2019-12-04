@@ -13,7 +13,7 @@ set(CMAKE_C_COMPILER_ID "GNU")
 set(CMAKE_C_TARGET_INCLUDE_PATH
   )
 set(CMAKE_DEPENDS_CHECK_CXX
-  "/home/tigrulya/CLionProjects/cacheProxy/cache.cpp" "/home/tigrulya/CLionProjects/cacheProxy/cmake-build-debug/CMakeFiles/cacheProxy.dir/cache.cpp.o"
+  "/home/tigrulya/CLionProjects/cacheProxy/Cache.cpp" "/home/tigrulya/CLionProjects/cacheProxy/cmake-build-debug/CMakeFiles/cacheProxy.dir/Cache.cpp.o"
   "/home/tigrulya/CLionProjects/cacheProxy/main.cpp" "/home/tigrulya/CLionProjects/cacheProxy/cmake-build-debug/CMakeFiles/cacheProxy.dir/main.cpp.o"
   "/home/tigrulya/CLionProjects/cacheProxy/proxy.cpp" "/home/tigrulya/CLionProjects/cacheProxy/cmake-build-debug/CMakeFiles/cacheProxy.dir/proxy.cpp.o"
   "/home/tigrulya/CLionProjects/cacheProxy/cmake-build-debug/serverContext.cpp" "/home/tigrulya/CLionProjects/cacheProxy/cmake-build-debug/CMakeFiles/cacheProxy.dir/serverContext.cpp.o"

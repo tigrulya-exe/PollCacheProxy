@@ -84,10 +84,10 @@
 				</MakeCommands>
 			</Target>
 		</Build>
-		<Unit filename="/home/tigrulya/CLionProjects/cacheProxy/cache.cpp">
+		<Unit filename="/home/tigrulya/CLionProjects/cacheProxy/Cache.cpp">
 			<Option target="cacheProxy"/>
 		</Unit>
-		<Unit filename="/home/tigrulya/CLionProjects/cacheProxy/cache.h">
+		<Unit filename="/home/tigrulya/CLionProjects/cacheProxy/Cache.h">
 			<Option target="cacheProxy"/>
 		</Unit>
 		<Unit filename="/home/tigrulya/CLionProjects/cacheProxy/cmake-build-debug/serverContext.cpp">
@@ -117,7 +117,7 @@
 		<Unit filename="/home/tigrulya/CLionProjects/cacheProxy/models/Connection.h">
 			<Option target="cacheProxy"/>
 		</Unit>
-		<Unit filename="/home/tigrulya/CLionProjects/cacheProxy/models/HttpMessage.h">
+		<Unit filename="/home/tigrulya/CLionProjects/cacheProxy/models/HttpRequest.h">
 			<Option target="cacheProxy"/>
 		</Unit>
 		<Unit filename="/home/tigrulya/CLionProjects/cacheProxy/proxy.cpp">

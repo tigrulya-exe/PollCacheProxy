@@ -5,13 +5,11 @@
 #include <unistd.h>
 #include <algorithm>
 #include <cstring>
-#include <utility>
 #include <arpa/inet.h>
 #include "proxy.h"
-#include "httpParser/httpParser.h"
 #include "exceptions/socketClosedException.h"
-#include "exceptions/unsupportedMethodException.h"
 #include "models/Connection.h"
+#include "models/HttpRequest.h"
 
 // один из сценариев тестирования прокси когда страница частично докачана, потом этот урл 
 // запрашивает второй клиент, то если у него соединение с сервером всего 10 бит в секунду 
@@ -24,12 +22,11 @@ Proxy::Proxy(int portToListen, sockaddr_in serverAddress) : portToListen(portToL
 
 void Proxy::start(){
     int sockFd = initProxySocket();
-    int pollState;
 
     pollFds.push_back({sockFd, POLLIN, 0});
 
     while (true){
-        if((pollState = poll(pollFds.data(), pollFds.size(), -1)) < 0){
+        if(poll(pollFds.data(), pollFds.size(), -1) < 0){
             perror("Poll");
             exit(EXIT_FAILURE);
         }
@@ -43,29 +40,20 @@ void Proxy::start(){
     }
 }
 
-HttpMessage Proxy::parseHttpRequest(Connection& client) {
-    int version;
-    size_t methodLen, pathLen;
-    const char *method, *path;
-    struct phr_header headers[100];
-    size_t num_headers = sizeof(headers) / sizeof(headers[0]);
+HttpRequest Proxy::parseHttpRequest(Connection& client) {
+    HttpRequest httpRequest;
 
+    httpRequest.headersCount = sizeof(httpRequest.headers) / sizeof(httpRequest.headers[0]);
     std::cout << "Client data:\n" << client.buffer->data() << std::endl;
-    int reqSize = phr_parse_request(client.buffer->data(), client.buffer->size(), &method, &methodLen, &path, &pathLen,
-                                    &version, headers, &num_headers, 0);
+    int reqSize = phr_parse_request(client.buffer->data(), client.buffer->size(), &httpRequest.method, &httpRequest.methodLen,
+                                    &httpRequest.path, &httpRequest.pathLen, &httpRequest.version, httpRequest.headers,
+                                    &httpRequest.headersCount, 0);
 
     if(reqSize == -1){
-        errors[client.socketFd] = "HTTP/1.0 400\r\n\r\nBAD REQUEST\r\n";
+        throw std::runtime_error("HTTP/1.0 400\r\n\r\nBAD REQUEST\r\n");
     }
 
-    char *url = new char[pathLen + 1];
-    url[pathLen] = '\0';
-    char *httpMethod = new char[methodLen + 1];
-    httpMethod[methodLen] = '\0';
-
-    return {(char *) memcpy(httpMethod, method, methodLen),
-            (char *) memcpy(url, path, pathLen),
-            version};
+    return httpRequest;
 
 
 //    checkUrl(url, client);
@@ -80,20 +68,19 @@ HttpMessage Proxy::parseHttpRequest(Connection& client) {
     // }
 }
 
-void Proxy::checkRequest(HttpMessage& request){
+void Proxy::checkRequest(HttpRequest& request){
 
-    if(strcmp(request.method, "GET") != 0 && strcmp(request.method, "HEAD") != 0){
+    if(strstr(request.method, "GET") == nullptr && strstr(request.method, "HEAD") == nullptr){
         throw std::runtime_error("HTTP/1.0 501\r\n\r\nNOT IMPLEMENTED\r\n");
-//        throw unsupportedMethodException();
     }
 
 //    if(request.version != 0){
 //        throw std::runtime_error("HTTP/1.1 505\r\n\r\nHTTP VERSION NOT SUPPORTED\r\n");
-////        throw unsupportedMethodException();
 //    }
 
     // и остальные проверки
 }
+
 
 Connection Proxy::initServerConnection(Connection& clientConnection){
     int serverSockFd = socket(AF_INET, SOCK_STREAM, 0);
@@ -119,14 +106,15 @@ Connection Proxy::initServerConnection(Connection& clientConnection){
 bool Proxy::isNewPathRequest(Connection& clientConnection) {
     // на этом этапе надо как нить чекнуть что у клиента есть весь хттп фрейм целиком
     // TODO
-//    pollFds[clientConnection.pollFdsIndex].events = -1;
     pollFds[clientConnection.pollFdsIndex].revents = 0;
 
-    HttpMessage httpMessage = parseHttpRequest(clientConnection);
-    clientConnection.URl = httpMessage.path;
-    checkRequest(httpMessage);
+    HttpRequest httpRequest = parseHttpRequest(clientConnection);
 
-    return !cacheNodes.contains(httpMessage.path);
+    clientConnection.URl = new char[httpRequest.pathLen];
+    clientConnection.URl = (char* ) memcpy((void *) clientConnection.URl, httpRequest.path, httpRequest.pathLen);
+    checkRequest(httpRequest);
+
+    return !cacheNodes.contains(clientConnection.URl);
 }
 
 bool Proxy::checkForErrors(Connection& connection) {
@@ -252,8 +240,6 @@ void Proxy::receiveDataFromServer(Connection &connection) {
     }
 
     checkServerResponse(connection.URl, buf, recvCount);
-//    char tmpBuf[] = "HTTP/1.1 200 OK\r\n\r\nHELLO KITTY\r\n";
-//        checkServerResponse(connection.URl, tmpBuf, strlen(tmpBuf), connection.socketFd);
 }
 
 void Proxy::receiveDataFromClient(Connection &connection) {
@@ -265,8 +251,6 @@ void Proxy::receiveDataFromClient(Connection &connection) {
     }
 
     connection.buffer->insert(connection.buffer->end(), buf, buf + recvCount);
-//    char tmpBuf[] = "HTTP/1.1 200 OK\r\n\r\nHELLO KITTY\r\n";
-//        checkServerResponse(connection.URl, tmpBuf, strlen(tmpBuf), connection.socketFd);
 }
 
 int Proxy::receiveData(Connection& connection, char* buf) {
@@ -363,31 +347,29 @@ void updatePollFdIndexes(std::vector<Connection>& connections, int deletedPollFd
     }
 }
 
-void Proxy::removeServerConnection(Connection& connection){
+void Proxy::removeConnection(Connection& connection){
     pollFds.erase(pollFds.begin() + connection.pollFdsIndex);
+
     if(close(connection.socketFd) < 0 ){
         perror("Error closing socket");
         exit(EXIT_FAILURE);
     }
     updatePollFdIndexes(serverConnections, connection.pollFdsIndex);
     updatePollFdIndexes(clientConnections, connection.pollFdsIndex);
+}
 
+void Proxy::removeServerConnection(Connection& connection){
+    removeConnection(connection);
     remove(serverConnections, connection);
 }
 
+
 void Proxy::removeClientConnection(Connection &connection) {
-    pollFds.erase(pollFds.begin() + connection.pollFdsIndex);
     errors.erase(connection.socketFd);
     cacheOffsets.erase(connection.socketFd);
     connection.buffer->clear();
     delete(connection.buffer);
 
-    updatePollFdIndexes(serverConnections, connection.pollFdsIndex);
-    updatePollFdIndexes(clientConnections, connection.pollFdsIndex);
-
-    if(close(connection.socketFd) < 0 ){
-        perror("Error closing socket");
-        exit(EXIT_FAILURE);
-    }
+    removeConnection(connection);
     remove(clientConnections, connection);
 }

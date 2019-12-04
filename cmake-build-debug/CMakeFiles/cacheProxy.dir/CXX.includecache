@@ -6,7 +6,7 @@
 
 #IncludeRegexTransform: 
 
-/home/tigrulya/CLionProjects/cacheProxy/cache.h
+/home/tigrulya/CLionProjects/cacheProxy/Cache.h
 vector
 -
 map
@@ -16,19 +16,33 @@ map
 exception
 -
 
-/home/tigrulya/CLionProjects/cacheProxy/exceptions/unsupportedMethodException.h
-bits/exception.h
+/home/tigrulya/CLionProjects/cacheProxy/exceptions/wrongArgumentException.h
+exception
 -
 
 /home/tigrulya/CLionProjects/cacheProxy/httpParser/httpParser.h
 sys/types.h
 -
 
+/home/tigrulya/CLionProjects/cacheProxy/main.cpp
+iostream
+-
+proxy.h
+/home/tigrulya/CLionProjects/cacheProxy/proxy.h
+exceptions/wrongArgumentException.h
+/home/tigrulya/CLionProjects/cacheProxy/exceptions/wrongArgumentException.h
+util/argResolver.h
+/home/tigrulya/CLionProjects/cacheProxy/util/argResolver.h
+
 /home/tigrulya/CLionProjects/cacheProxy/models/Connection.h
 cstdio
 -
 
-/home/tigrulya/CLionProjects/cacheProxy/models/HttpMessage.h
+/home/tigrulya/CLionProjects/cacheProxy/models/HttpRequest.h
+cstdio
+-
+../httpParser/httpParser.h
+/home/tigrulya/CLionProjects/cacheProxy/httpParser/httpParser.h
 
 /home/tigrulya/CLionProjects/cacheProxy/proxy.cpp
 sys/socket.h
@@ -45,20 +59,16 @@ algorithm
 -
 cstring
 -
-utility
--
 arpa/inet.h
 -
 proxy.h
 /home/tigrulya/CLionProjects/cacheProxy/proxy.h
-httpParser/httpParser.h
-/home/tigrulya/CLionProjects/cacheProxy/httpParser/httpParser.h
 exceptions/socketClosedException.h
 /home/tigrulya/CLionProjects/cacheProxy/exceptions/socketClosedException.h
-exceptions/unsupportedMethodException.h
-/home/tigrulya/CLionProjects/cacheProxy/exceptions/unsupportedMethodException.h
 models/Connection.h
 /home/tigrulya/CLionProjects/cacheProxy/models/Connection.h
+models/HttpRequest.h
+/home/tigrulya/CLionProjects/cacheProxy/models/HttpRequest.h
 
 /home/tigrulya/CLionProjects/cacheProxy/proxy.h
 vector
@@ -71,12 +81,16 @@ map
 -
 netinet/in.h
 -
-cache.h
-/home/tigrulya/CLionProjects/cacheProxy/cache.h
+Cache.h
+/home/tigrulya/CLionProjects/cacheProxy/Cache.h
 httpParser/httpParser.h
 /home/tigrulya/CLionProjects/cacheProxy/httpParser/httpParser.h
-models/HttpMessage.h
-/home/tigrulya/CLionProjects/cacheProxy/models/HttpMessage.h
 models/Connection.h
 /home/tigrulya/CLionProjects/cacheProxy/models/Connection.h
+models/HttpRequest.h
+/home/tigrulya/CLionProjects/cacheProxy/models/HttpRequest.h
+
+/home/tigrulya/CLionProjects/cacheProxy/util/argResolver.h
+netinet/in.h
+-
 

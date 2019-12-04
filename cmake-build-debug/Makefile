@@ -123,32 +123,32 @@ cacheProxy/fast:
 	$(MAKE) -f CMakeFiles/cacheProxy.dir/build.make CMakeFiles/cacheProxy.dir/build
 .PHONY : cacheProxy/fast
 
-cache.o: cache.cpp.o
+Cache.o: Cache.cpp.o
 
-.PHONY : cache.o
+.PHONY : Cache.o
 
 # target to build an object file
-cache.cpp.o:
-	$(MAKE) -f CMakeFiles/cacheProxy.dir/build.make CMakeFiles/cacheProxy.dir/cache.cpp.o
-.PHONY : cache.cpp.o
+Cache.cpp.o:
+	$(MAKE) -f CMakeFiles/cacheProxy.dir/build.make CMakeFiles/cacheProxy.dir/Cache.cpp.o
+.PHONY : Cache.cpp.o
 
-cache.i: cache.cpp.i
+Cache.i: Cache.cpp.i
 
-.PHONY : cache.i
+.PHONY : Cache.i
 
 # target to preprocess a source file
-cache.cpp.i:
-	$(MAKE) -f CMakeFiles/cacheProxy.dir/build.make CMakeFiles/cacheProxy.dir/cache.cpp.i
-.PHONY : cache.cpp.i
+Cache.cpp.i:
+	$(MAKE) -f CMakeFiles/cacheProxy.dir/build.make CMakeFiles/cacheProxy.dir/Cache.cpp.i
+.PHONY : Cache.cpp.i
 
-cache.s: cache.cpp.s
+Cache.s: Cache.cpp.s
 
-.PHONY : cache.s
+.PHONY : Cache.s
 
 # target to generate assembly for a file
-cache.cpp.s:
-	$(MAKE) -f CMakeFiles/cacheProxy.dir/build.make CMakeFiles/cacheProxy.dir/cache.cpp.s
-.PHONY : cache.cpp.s
+Cache.cpp.s:
+	$(MAKE) -f CMakeFiles/cacheProxy.dir/build.make CMakeFiles/cacheProxy.dir/Cache.cpp.s
+.PHONY : Cache.cpp.s
 
 httpParser/httpParser.o: httpParser/httpParser.c.o
 
@@ -294,9 +294,9 @@ help:
 	@echo "... rebuild_cache"
 	@echo "... cacheProxy"
 	@echo "... edit_cache"
-	@echo "... cache.o"
-	@echo "... cache.i"
-	@echo "... cache.s"
+	@echo "... Cache.o"
+	@echo "... Cache.i"
+	@echo "... Cache.s"
 	@echo "... httpParser/httpParser.o"
 	@echo "... httpParser/httpParser.i"
 	@echo "... httpParser/httpParser.s"

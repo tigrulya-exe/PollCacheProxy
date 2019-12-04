@@ -3,7 +3,7 @@
 #include <vector>
 #include <map>
 
-class cache{
+class Cache{
 private:
     std::map<std::string, bool> cacheReady;
 
