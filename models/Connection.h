@@ -14,7 +14,7 @@ struct Connection {
 
     int socketFd;
 
-    const char* URl;
+    std::string URl;
 
     std::vector<char>* buffer;
 };

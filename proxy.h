@@ -16,7 +16,7 @@ class Proxy{
 public:
     void start();
 
-    Proxy(int, sockaddr_in);
+    explicit Proxy(int);
 
 private:
     static const int ACCEPT_INDEX = 0;
@@ -32,7 +32,6 @@ private:
     std::map<int, char*> errors;
 
     Cache cacheNodes;
-    sockaddr_in serverAddress;
     int portToListen;
 
     int initProxySocket();
@@ -43,15 +42,15 @@ private:
 
     void checkClientsConnections();
 
-    HttpRequest parseHttpRequest(Connection &client);
+    HttpRequest parseHttpRequest(Connection &client, std::string& newRequest);
 
     void removeServerConnection(Connection& connection);
 
-    Connection initServerConnection(Connection &);
+    Connection initServerConnection(Connection &, HttpRequest& request);
 
     void checkServerConnections();
 
-    bool isNewPathRequest(Connection &clientConnection);
+    bool isNewPathRequest(Connection &clientConnection, HttpRequest& request);
 
     bool checkSend(Connection &connection);
 
@@ -63,17 +62,17 @@ private:
 
     int receiveData(Connection &connection, char* buf);
 
-    void checkServerResponse(const char* URL, char *response, int responseLength);
+    void checkServerResponse(std::string& URL, char *response, int responseLength);
 
-    bool isCorrectResponseStatus(const char* URL, char *response, int responseLength);
+    bool isCorrectResponseStatus(char *response, int responseLength);
 
     bool checkForErrors(Connection &connection);
 
     void removeClientConnection(Connection &connection);
 
-    void notifyClientsAboutError(const char *URL, const char *error);
+    void notifyClientsAboutError(std::string& URL, const char *error);
 
-    void prepareClientsToWrite(const char *URL);
+    void prepareClientsToWrite(std::string& URL);
 
     void receiveDataFromServer(Connection &connection);
 
@@ -84,4 +83,6 @@ private:
     void checkRequest(HttpRequest &request);
 
     void removeConnection(Connection &connection);
+
+    sockaddr_in getServerAddress(const char *host);
 };

@@ -15,7 +15,7 @@ public:
 
     void addData(std::string url, char *newData, int newDataLength);
 
-    bool cacheNodeReady(const char* url);
+    bool cacheNodeReady(std::string& url);
 
     void setNodeReady(const std::string& url, bool isReady);
 };

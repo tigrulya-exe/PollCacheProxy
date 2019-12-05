@@ -6,15 +6,13 @@
 struct HttpRequest {
     int version;
 
-    size_t methodLen;
+    std::string method;
 
-    size_t pathLen;
-
-    const char *method;
-
-    const char *path;
+    std::string path;
 
     phr_header headers[100];
+
+    std::string host;
 
     size_t headersCount;
 };

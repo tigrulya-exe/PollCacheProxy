@@ -13,7 +13,7 @@ void Cache::addData(std::string url, char *newData, int newDataLength) {
     cacheNode.insert(cacheNode.end(), newData, newData + newDataLength);
 }
 
-bool Cache::cacheNodeReady(const char* url) {
+bool Cache::cacheNodeReady(std::string& url) {
     return !contains(url) ? false : cacheReady[url];
 }
 
