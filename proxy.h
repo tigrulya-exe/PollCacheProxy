@@ -10,6 +10,7 @@
 #include "models/Connection.h"
 #include "models/HttpRequest.h"
 
+using ConnectionIter = __gnu_cxx::__normal_iterator<Connection *, std::vector<Connection>>;
 
 class Proxy{
 
@@ -29,7 +30,7 @@ private:
     // key - socket fd, value - offset
     std::map<int, int> cacheOffsets;
     // key - socket fd, value - error message
-    std::map<int, char*> errors;
+    std::map<int, std::string> errors;
 
     Cache cacheNodes;
     int portToListen;
@@ -44,13 +45,11 @@ private:
 
     HttpRequest parseHttpRequest(Connection &client, std::string& newRequest);
 
-    void removeServerConnection(Connection& connection);
+    ConnectionIter removeServerConnection(Connection& connection);
 
     Connection initServerConnection(Connection &, HttpRequest& request);
 
     void checkServerConnections();
-
-    bool isNewPathRequest(Connection &clientConnection, HttpRequest& request);
 
     bool checkSend(Connection &connection);
 
@@ -62,13 +61,11 @@ private:
 
     int receiveData(Connection &connection, char* buf);
 
-    void checkServerResponse(std::string& URL, char *response, int responseLength);
-
     bool isCorrectResponseStatus(char *response, int responseLength);
 
     bool checkForErrors(Connection &connection);
 
-    void removeClientConnection(Connection &connection);
+    ConnectionIter removeClientConnection(Connection &connection);
 
     void notifyClientsAboutError(std::string& URL, const char *error);
 
@@ -76,7 +73,7 @@ private:
 
     void receiveDataFromServer(Connection &connection);
 
-    void receiveDataFromClient(Connection &connection);
+    bool receiveDataFromClient(Connection &connection);
 
     void handleClientDataReceive(Connection &clientConnection);
 
@@ -85,4 +82,6 @@ private:
     void removeConnection(Connection &connection);
 
     sockaddr_in getServerAddress(const char *host);
+
+    void checkIfError(Connection &connection);
 };

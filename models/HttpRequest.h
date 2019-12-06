@@ -6,6 +6,8 @@
 struct HttpRequest {
     int version;
 
+    bool isFullRequest;
+
     std::string method;
 
     std::string path;
