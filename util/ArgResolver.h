@@ -1,13 +1,7 @@
-//
-// Created by tigrulya on 11/28/19.
-//
-
-#pragma once
-
-#pragma once
 #include <netinet/in.h>
 
-
+#ifndef ARG_RECOLVER_H
+#define ARG_RECOLVER_H
 class ArgResolver{
 private:
     static const int LISTEN_PORT_INDEX = 1;
@@ -18,3 +12,5 @@ public:
     static int getPortToListen(int, char**);
     static void printUsage();
 };
+
+#endif

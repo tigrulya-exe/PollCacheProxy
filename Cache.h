@@ -1,7 +1,8 @@
-#pragma once
-
 #include <vector>
 #include <map>
+
+#ifndef CACHE_H
+#define CACHE_H
 
 class Cache{
 private:
@@ -13,9 +14,11 @@ public:
 
     std::vector<char>& getCurrentData(const std::string& url);
 
-    void addData(std::string url, char *newData, int newDataLength);
+    void addData(std::string& url, char *newData, int newDataLength);
 
     bool cacheNodeReady(std::string& url);
 
     void setNodeReady(const std::string& url, bool isReady);
 };
+
+#endif

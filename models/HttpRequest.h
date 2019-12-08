@@ -1,12 +1,11 @@
-#pragma once
-
 #include <cstdio>
-#include "../httpParser/httpParser.h"
+#include "../httpParser/HttpParser.h"
+
+#ifndef REQUEST_H
+#define REQUEST_H
 
 struct HttpRequest {
     int version;
-
-    bool isFullRequest;
 
     std::string method;
 
@@ -18,3 +17,4 @@ struct HttpRequest {
 
     size_t headersCount;
 };
+#endif

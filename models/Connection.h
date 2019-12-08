@@ -1,6 +1,7 @@
-#pragma once
-
 #include <cstdio>
+
+#ifndef CONNECTION_H
+#define CONNECTION_H
 
 struct Connection {
 
@@ -18,3 +19,5 @@ struct Connection {
 
     std::vector<char>* buffer;
 };
+
+#endif

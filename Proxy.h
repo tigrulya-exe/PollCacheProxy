@@ -1,14 +1,16 @@
-#pragma once
-
 #include <vector>
 #include <list>
 #include <poll.h>
 #include <map>
 #include <netinet/in.h>
 #include "Cache.h"
-#include "httpParser/httpParser.h"
+#include "httpParser/HttpParser.h"
 #include "models/Connection.h"
 #include "models/HttpRequest.h"
+#include "constants.h"
+
+#ifndef PROXY_H
+#define PROXY_H
 
 using ConnectionIter = __gnu_cxx::__normal_iterator<Connection *, std::vector<Connection>>;
 
@@ -43,7 +45,7 @@ private:
 
     void checkClientsConnections();
 
-    HttpRequest parseHttpRequest(Connection &client, std::string& newRequest);
+    HttpRequest parseHttpRequest(Connection &client);
 
     ConnectionIter removeServerConnection(Connection& connection);
 
@@ -53,7 +55,7 @@ private:
 
     bool checkSend(Connection &connection);
 
-    void sendDataFromCache(Connection &connection);
+    bool sendDataFromCache(Connection &connection, bool cacheNodeReady);
 
     void sendRequestToServer(Connection &serverConnection);
 
@@ -84,4 +86,10 @@ private:
     sockaddr_in getServerAddress(const char *host);
 
     void checkIfError(Connection &connection);
+
+    bool allDataHasBeenSent(Connection &clientConnection);
+
+    void stop();
 };
+
+#endif

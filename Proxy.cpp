@@ -7,20 +7,16 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <fcntl.h>
-#include "proxy.h"
-#include "exceptions/socketClosedException.h"
+#include <csignal>
+#include <cstring>
+#include "Proxy.h"
+#include "exceptions/SocketClosedException.h"
 #include "models/Connection.h"
 #include "models/HttpRequest.h"
+#include "exceptions/ProxyException.h"
 
 /* сценарий - сервер с картинками - много маленьких картинок + кеширование маленьких элементов
  * потом обновляем страницу и чекаем что картинки взяты из кеша
- *
- * сценарий - качаем большой файл - 300 мб
- * и чекаем что норм качает (скорость)
- *
- * надо хендлить сигналы
- *
- * при закрытии прокси закрывать сокеты сервера, даже если недокачка
  *
  * в курле ставим медленную скорость на одном клиенте качаем
  * на другом
@@ -37,20 +33,49 @@
 // с дефолтной скоростью остальные данные
 
 // вынести кеш в отдельный класс - со всеми операциями по обращению к данным
-//utCC -lrt -lxnet -lnsl  *.cpp -std=c++11 -o proxy
+//CC -lrt -lxnet -lnsl  *.cpp -std=c++11 -m64 -lgcc_s -lc -o proxy
 
+bool isInterrupted = false;
+
+void interrupt(int sig){
+    isInterrupted = true;
+}
 
 Proxy::Proxy(int portToListen) : portToListen(portToListen){}
 
+void Proxy::stop(){
+    std::cout << "Stopping server..." << std::endl;
+
+    for(auto& pollFd : pollFds){
+        if(close(pollFd.fd) < 0){
+            perror("Error closing socket");
+        }
+    }
+
+    for(auto& clientConnection : clientConnections){
+        delete clientConnection.buffer;
+    }
+}
+
 void Proxy::start(){
+    sigset(SIGPIPE, SIG_IGN);
+    sigset(SIGINT, interrupt);
+    sigset(SIGQUIT, interrupt);
+    sigset(SIGTERM, interrupt);
+
     int sockFd = initProxySocket();
 
     pollFds.push_back({sockFd, POLLIN, 0});
 
     while (true){
+        if(isInterrupted) {
+            stop();
+            throw ProxyException("Interrupted");
+        }
+
         if(poll(pollFds.data(), pollFds.size(), -1) < 0){
-            perror("Poll");
-            exit(EXIT_FAILURE);
+            stop();
+            throw ProxyException(std::string("Poll error: ") + strerror(errno));
         }
 
         if(pollFds[ACCEPT_INDEX].revents & POLLIN){
@@ -62,7 +87,9 @@ void Proxy::start(){
     }
 }
 
-HttpRequest Proxy::parseHttpRequest(Connection& client, std::string& newRequest) {
+
+
+HttpRequest Proxy::parseHttpRequest(Connection& client) {
     HttpRequest httpRequest;
 
     const char* path;
@@ -76,36 +103,27 @@ HttpRequest Proxy::parseHttpRequest(Connection& client, std::string& newRequest)
                                     &httpRequest.headersCount, 0);
 
     if(reqSize == -1){
-//        std::cout << "NOT FULL" << std::endl;
-        throw std::runtime_error("HTTP/1.0 400\r\n\r\nBAD REQUEST\r\n");
+        throw ProxyException(errors::BAD_REQUEST);
     }
 
     std::string onlyPath = path;
     onlyPath.erase(onlyPath.begin() + pathLen, onlyPath.end());
     httpRequest.path = onlyPath;
-//    std::cout << "MY PATH: " << onlyPath << std::endl;
 
     std::string onlyMethod = method;
     onlyMethod.erase(onlyMethod.begin() + methodLen, onlyMethod.end());
     httpRequest.method = onlyMethod;
 
-    newRequest = onlyMethod + std::string(" ").append(onlyPath).append(" HTTP/1.0") + "\r\n";
-
     for(int i = 0; i < httpRequest.headersCount; ++i){
         std::string headerName = httpRequest.headers[i].name;
         headerName.erase(headerName.begin() + httpRequest.headers[i].name_len, headerName.end());
-        std::string headerValue = httpRequest.headers[i].value;
-        headerValue.erase(headerValue.begin() + httpRequest.headers[i].value_len, headerValue.end());
 
         if(headerName == "Host") {
+            std::string headerValue = httpRequest.headers[i].value;
+            headerValue.erase(headerValue.begin() + httpRequest.headers[i].value_len, headerValue.end());
             httpRequest.host = headerValue;
-            continue;
         }
-
-        newRequest.append(headerName).append(": ").append(headerValue) += "\r\n";
     }
-
-    newRequest += "\r\n\r\n";
 
     return httpRequest;
 }
@@ -113,35 +131,34 @@ HttpRequest Proxy::parseHttpRequest(Connection& client, std::string& newRequest)
 void Proxy::checkRequest(HttpRequest& request){
 
     if(request.method == "GET" && request.method == "HEAD"){
-        throw std::runtime_error("HTTP/1.0 501\r\n\r\nNOT IMPLEMENTED\r\n");
+        throw ProxyException(errors::NOT_IMPLEMENTED);
     }
 
 //    if(request.version != 0){
 //        throw std::runtime_error("HTTP/1.1 505\r\n\r\nHTTP VERSION NOT SUPPORTED\r\n");
 //    }
 
-    // и остальные проверки
 }
 
 
 sockaddr_in Proxy::getServerAddress(const char *host) {
     sockaddr_in serverAddr;
 
-    addrinfo hints = {0};
-    hints.ai_flags = 0;
-    hints.ai_family = AF_INET;
-    hints.ai_socktype = SOCK_STREAM;
-    hints.ai_protocol = IPPROTO_TCP;
+    addrinfo addrInfo = {0};
+    addrInfo.ai_flags = 0;
+    addrInfo.ai_family = AF_INET;
+    addrInfo.ai_socktype = SOCK_STREAM;
+    addrInfo.ai_protocol = IPPROTO_TCP;
 
-    addrinfo* addr = nullptr;
-    getaddrinfo(host, nullptr, &hints, &addr);
+    addrinfo* hostAddr = nullptr;
+    getaddrinfo(host, nullptr, &addrInfo, &hostAddr);
 
-    if (!addr) {
+    if (!hostAddr) {
         std::cout << "Can't resolve host!" << std::endl;
-        throw std::runtime_error("HTTP/1.1 523\r\n\r\n");
+        throw ProxyException(errors::BAD_REQUEST);
     }
 
-    serverAddr = *(sockaddr_in*) (addr->ai_addr);
+    serverAddr = *(sockaddr_in*) (hostAddr->ai_addr);
     serverAddr.sin_family = AF_INET;
     serverAddr.sin_port = htons(80);
 
@@ -152,19 +169,15 @@ Connection Proxy::initServerConnection(Connection& clientConnection, HttpRequest
     int serverSockFd = socket(AF_INET, SOCK_STREAM, 0);
 
     if(serverSockFd < 0){
-        throw std::runtime_error("HTTP/1.0 500\r\n\r\nERROR CONNECTING WITH SERVER\r\n");
+        throw ProxyException(errors::SERVER_CONNECT);
     }
 
     sockaddr_in addressToConnect = getServerAddress(request.host.c_str());
 
-//    if(connect(serverSockFd, (struct sockaddr *)& serverAddress, sizeof(serverAddress)) == -1){
-//        throw std::runtime_error("HTTP/1.0 500\r\n\r\nERROR CONNECTING WITH SERVER\r\n");
-//    }
-
     fcntl(serverSockFd, F_SETFL, fcntl(serverSockFd, F_GETFL, 0) | O_NONBLOCK);
 
     if(connect(serverSockFd, (struct sockaddr *)& addressToConnect, sizeof(addressToConnect)) == -1 && errno != EINPROGRESS){
-        throw std::runtime_error("HTTP/1.0 500\r\n\r\nERROR CONNECTING WITH SERVER\r\n");
+        throw ProxyException(errors::SERVER_CONNECT);
     }
 
     fcntl(serverSockFd, F_SETFL,  fcntl(serverSockFd, F_GETFL, 0) & ~O_NONBLOCK);
@@ -181,8 +194,7 @@ Connection Proxy::initServerConnection(Connection& clientConnection, HttpRequest
 }
 
 
-__gnu_cxx::__normal_iterator<Connection *, std::vector<Connection>>
-eraseConnection(std::vector<Connection>& vector, Connection& toRemove){
+ConnectionIter eraseConnection(std::vector<Connection>& vector, Connection& toRemove){
     return vector.erase(std::remove_if(vector.begin(), vector.end(), [&toRemove](const Connection& connection) {
         return connection.socketFd == toRemove.socketFd;
     }), vector.end());
@@ -196,45 +208,51 @@ bool Proxy::checkForErrors(Connection& connection) {
     std::cout << "ERROR MESSAGE WAS SENT: " << connection.URl << std::endl;
 
     std::string& errorMsg = errors[connection.socketFd];
-    if (send(connection.socketFd, errorMsg.c_str(), errorMsg.size(), 0) < 0) {
-        throw std::runtime_error("Error sending error message");
+    if (send(connection.socketFd, errorMsg.c_str(), errorMsg.size(), 0) < 0 && errno != EWOULDBLOCK ) {
+        std::cout << "Error sending error message" << std::endl;
     }
     return true;
 }
 
-void Proxy::sendDataFromCache(Connection& connection){
+bool Proxy::sendDataFromCache(Connection& connection, bool cacheNodeReady){
     if(checkForErrors(connection)){
         throw SocketClosedException();
     }
 
     auto& cacheNode = cacheNodes.getCurrentData(connection.URl);
     int& offset = cacheOffsets[connection.socketFd];
-//
-//    if(cacheNode.size() - offset == 0){
-//        return;
-//    }
 
-    if(send(connection.socketFd, cacheNode.data() + offset, cacheNode.size() - offset, 0) < 0){
+    int sendCount;
+    if((sendCount = send(connection.socketFd, cacheNode.data() + offset, cacheNode.size() - offset, 0)) < 0 && errno != EWOULDBLOCK){
         perror("Error sending data to client from cache");
-        throw std::runtime_error("Error sending data to client from cache");
+        throw ProxyException(errors::CACHE_SEND_ERROR);
     }
 
-    std::cout << "I GOT DATA (TOTAL SIZE - " << cacheNode.size() - offset <<  " BYTES) FROM CACHE:" << connection.URl << std::endl;
+    if(sendCount)
+        std::cout << "I GOT DATA (TOTAL SIZE - " << sendCount <<  " BYTES) FROM CACHE:" << connection.URl << std::endl;
 
-    offset = cacheNode.size();
-    pollFds[connection.pollFdsIndex].events = POLLIN;
+//    if (cacheNodeReady) {
+//        offset = offset + sendCount;
+//    } else {
+//        offset = cacheNode.size();
+//        pollFds[connection.pollFdsIndex].events = POLLIN;
+//    }
+
+    offset += sendCount;
+
+    if(!cacheNodeReady)
+        pollFds[connection.pollFdsIndex].events = POLLIN;
+
+    return cacheNodeReady && !(cacheNode.size() - offset);
 }
 
 void Proxy::handleClientDataReceive(Connection& clientConnection){
     if(!receiveDataFromClient(clientConnection))
         return;
 
-    std::string requestWithoutHostHeader;
-    HttpRequest httpRequest = parseHttpRequest(clientConnection, requestWithoutHostHeader);
+    HttpRequest httpRequest = parseHttpRequest(clientConnection);
     checkRequest(httpRequest);
 
-    clientConnection.buffer->clear();
-    *(clientConnection.buffer) = std::vector<char >(requestWithoutHostHeader.begin(), requestWithoutHostHeader.end());
     clientConnection.URl = httpRequest.path;
     pollFds[clientConnection.pollFdsIndex].revents = 0;
 
@@ -254,15 +272,20 @@ void Proxy::checkIfError(Connection& connection) {
     }
 }
 
+bool Proxy::allDataHasBeenSent(Connection &clientConnection){
+    bool cacheNodeReady = cacheNodes.cacheNodeReady(clientConnection.URl);
+    bool allDataHasBeenSent = sendDataFromCache(clientConnection, cacheNodeReady);
+    return  cacheNodeReady && allDataHasBeenSent;
+}
+
 void Proxy::checkClientsConnections() {
     for(auto iterator = clientConnections.begin(); iterator != clientConnections.end(); ) {
-
         Connection& clientConnection = *iterator;
         try {
             checkIfError(clientConnection);
             if (checkSend(clientConnection)) {
-                sendDataFromCache(clientConnection);
-                if (cacheNodes.cacheNodeReady(clientConnection.URl)) {
+                if (allDataHasBeenSent(clientConnection)) {
+                    std::cout << clientConnection.socketFd << " : i've downloaded all what i need" << std::endl;
                     iterator = removeClientConnection(clientConnection);
                     continue;
                 }
@@ -272,7 +295,7 @@ void Proxy::checkClientsConnections() {
             ++iterator;
         }
 
-        catch (std::runtime_error& error){
+        catch (ProxyException& error){
             errors.emplace(clientConnection.socketFd, (char*)error.what());
             checkForErrors(clientConnection);
             iterator = removeClientConnection(clientConnection);
@@ -293,11 +316,9 @@ bool Proxy::checkRecv(Connection& connection){
 }
 
 void Proxy::sendRequestToServer(Connection& serverConnection){
-//    std::cout << "Client data:\n" << serverConnection.buffer->data() << std::endl;
 
-
-    if(send(serverConnection.socketFd, serverConnection.buffer->data(), serverConnection.buffer->size(), 0) < 0){
-        throw std::runtime_error("Error sending data to server");
+    if(send(serverConnection.socketFd, serverConnection.buffer->data(), serverConnection.buffer->size(), 0) < 0 && errno != EWOULDBLOCK){
+        throw ProxyException(errors::SERVER_CONNECT);
     }
 
     pollFds[serverConnection.pollFdsIndex].events = POLLIN;
@@ -336,7 +357,7 @@ void Proxy::receiveDataFromServer(Connection &connection) {
     }
 
     if(!cacheNodes.contains(connection.URl) && !isCorrectResponseStatus(buf, recvCount))
-        throw std::runtime_error(buf);
+        throw ProxyException(buf);
 
     cacheNodes.addData(connection.URl, buf, recvCount);
 }
@@ -357,7 +378,7 @@ int Proxy::receiveData(Connection& connection, char* buf) {
     int recvCount = 0;
 
     if ((recvCount = recv(connection.socketFd, buf, BUF_SIZE, 0)) < 0) {
-        throw std::runtime_error("Error receiving data");
+        throw ProxyException(errors::INTERNAL_ERROR);
     }
 
     return recvCount;
@@ -386,8 +407,7 @@ void Proxy::checkServerConnections(){
             pollFds[serverConnection.pollFdsIndex].revents = 0;
         }
 
-        catch (std::runtime_error& error){
-            std::cout << "SERVER ERROR" << std::endl;
+        catch (ProxyException& error){
             notifyClientsAboutError(serverConnection.URl, error.what());
             iterator = removeServerConnection(serverConnection);
         }
@@ -429,13 +449,13 @@ void Proxy::addNewConnection(int sockFd){
         perror("Error accepting connection");
         return;
     }
+    fcntl(newSocketFd, F_SETFL, fcntl(newSocketFd, F_GETFL, 0) | O_NONBLOCK);
 
     pollFds.push_back({newSocketFd, POLLIN, 0});
     clientConnections.emplace_back(newSocketFd, pollFds.size() - 1);
     cacheOffsets[newSocketFd] = 0;
     clientConnections.rbegin()->initBuffer();
 }
-
 
 void updatePollFdIndexes(std::vector<Connection>& connections, int deletedPollFdIndex){
     for(auto& connection : connections){
