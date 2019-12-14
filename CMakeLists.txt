@@ -3,4 +3,4 @@ project(cacheProxy)
 
 set(CMAKE_CXX_STANDARD 14)
 
-add_executable(cacheProxy main.cpp httpParser/HttpParser.c util/ArgResolver.cpp util/ArgResolver.h exceptions/WrongArgumentException.h exceptions/SocketClosedException.h Proxy.cpp Proxy.h Cache.cpp Cache.h cmake-build-debug/serverContext.cpp cmake-build-debug/serverContext.h models/Connection.h models/HttpRequest.h exceptions/ProxyException.h constants.h)
+add_executable(cacheProxy main.cpp httpParser/HttpParser.c util/ArgResolver.cpp util/ArgResolver.h exceptions/WrongArgumentException.h exceptions/SocketClosedException.h Proxy.cpp Proxy.h Cache.cpp Cache.h models/Connection.h models/HttpRequest.h exceptions/ProxyException.h constants.h)

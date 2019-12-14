@@ -15,6 +15,12 @@
 #include "models/HttpRequest.h"
 #include "exceptions/ProxyException.h"
 
+// wget -r
+// запустив два таких вгета сравнить надо деревья, деревья архивировать в тар и посчитать мд5 суммы и сравнить
+// проксей скачать исо и сравнить ша суммы
+//
+//
+
 /* сценарий - сервер с картинками - много маленьких картинок + кеширование маленьких элементов
  * потом обновляем страницу и чекаем что картинки взяты из кеша
  *
@@ -38,6 +44,9 @@
 bool isInterrupted = false;
 
 void interrupt(int sig){
+    signal(SIGINT, interrupt);
+    signal(SIGQUIT, interrupt);
+    signal(SIGTERM, interrupt);
     isInterrupted = true;
 }
 
@@ -58,10 +67,14 @@ void Proxy::stop(){
 }
 
 void Proxy::start(){
-    sigset(SIGPIPE, SIG_IGN);
-    sigset(SIGINT, interrupt);
-    sigset(SIGQUIT, interrupt);
-    sigset(SIGTERM, interrupt);
+//    sigset(SIGPIPE, SIG_IGN);
+//    sigset(SIGINT, interrupt);
+//    sigset(SIGQUIT, interrupt);
+//    sigset(SIGTERM, interrupt);
+    signal(SIGPIPE, SIG_IGN);
+    signal(SIGINT, interrupt);
+    signal(SIGQUIT, interrupt);
+    signal(SIGTERM, interrupt);
 
     int sockFd = initProxySocket();
 
@@ -229,19 +242,12 @@ bool Proxy::sendDataFromCache(Connection& connection, bool cacheNodeReady){
     }
 
     if(sendCount)
-        std::cout << "I GOT DATA (TOTAL SIZE - " << sendCount <<  " BYTES) FROM CACHE:" << connection.URl << std::endl;
-
-//    if (cacheNodeReady) {
-//        offset = offset + sendCount;
-//    } else {
-//        offset = cacheNode.size();
-//        pollFds[connection.pollFdsIndex].events = POLLIN;
-//    }
+        std::cout << connection.socketFd << " : GOT DATA ( " << sendCount <<  " BYTES) FROM CACHE:" << connection.URl << std::endl;
 
     offset += sendCount;
 
-    if(!cacheNodeReady)
-        pollFds[connection.pollFdsIndex].events = POLLIN;
+    if(!cacheNodeReady || cacheNode.size() == offset)
+        pollFds[connection.pollFdsIndex].events = -1;
 
     return cacheNodeReady && !(cacheNode.size() - offset);
 }
