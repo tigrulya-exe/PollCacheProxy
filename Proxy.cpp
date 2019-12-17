@@ -15,6 +15,12 @@
 #include "models/HttpRequest.h"
 #include "exceptions/ProxyException.h"
 
+// wget -r
+// запустив два таких вгета сравнить надо деревья, деревья архивировать в тар и посчитать мд5 суммы и сравнить
+// проксей скачать исо и сравнить ша суммы
+//
+//
+
 /* сценарий - сервер с картинками - много маленьких картинок + кеширование маленьких элементов
  * потом обновляем страницу и чекаем что картинки взяты из кеша
  *
@@ -57,12 +63,23 @@ void Proxy::stop(){
     }
 }
 
-void Proxy::start(){
-    sigset(SIGPIPE, SIG_IGN);
-    sigset(SIGINT, interrupt);
-    sigset(SIGQUIT, interrupt);
-    sigset(SIGTERM, interrupt);
+void Proxy::setSignalHandlers(){
+    struct sigaction sigAction;
 
+    sigAction.sa_handler = interrupt;
+    sigemptyset (&sigAction.sa_mask);
+    sigAction.sa_flags = 0;
+
+    sigaction (SIGINT, &sigAction, nullptr);
+    sigaction (SIGQUIT, &sigAction, nullptr);
+    sigaction (SIGTERM, &sigAction, nullptr);
+
+    sigAction.sa_handler = SIG_IGN;
+    sigaction (SIGPIPE, &sigAction, nullptr);
+}
+
+void Proxy::start(){
+    setSignalHandlers();
     int sockFd = initProxySocket();
 
     pollFds.push_back({sockFd, POLLIN, 0});
@@ -140,7 +157,6 @@ void Proxy::checkRequest(HttpRequest& request){
 
 }
 
-
 sockaddr_in Proxy::getServerAddress(const char *host) {
     sockaddr_in serverAddr;
 
@@ -173,6 +189,7 @@ Connection Proxy::initServerConnection(Connection& clientConnection, HttpRequest
     }
 
     sockaddr_in addressToConnect = getServerAddress(request.host.c_str());
+    std::cout << "HOST: " << request.host << " : URL: " << clientConnection.URl << std::endl;
 
     fcntl(serverSockFd, F_SETFL, fcntl(serverSockFd, F_GETFL, 0) | O_NONBLOCK);
 
@@ -229,19 +246,12 @@ bool Proxy::sendDataFromCache(Connection& connection, bool cacheNodeReady){
     }
 
     if(sendCount)
-        std::cout << "I GOT DATA (TOTAL SIZE - " << sendCount <<  " BYTES) FROM CACHE:" << connection.URl << std::endl;
-
-//    if (cacheNodeReady) {
-//        offset = offset + sendCount;
-//    } else {
-//        offset = cacheNode.size();
-//        pollFds[connection.pollFdsIndex].events = POLLIN;
-//    }
+        std::cout << connection.socketFd << " : GOT DATA ( " << sendCount <<  " BYTES) FROM CACHE:" << connection.URl << std::endl;
 
     offset += sendCount;
 
-    if(!cacheNodeReady)
-        pollFds[connection.pollFdsIndex].events = POLLIN;
+    if(!cacheNodeReady || cacheNode.size() == offset)
+        pollFds[connection.pollFdsIndex].events = -1;
 
     return cacheNodeReady && !(cacheNode.size() - offset);
 }
@@ -425,10 +435,14 @@ void Proxy::initAddress(sockaddr_in* addr, int port){
 }
 
 int Proxy::initProxySocket(){
+    int reuse = 1;
     sockaddr_in address;
     initAddress(&address, portToListen);
 
+
     int sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse));
+
     if(bind(sockfd, (struct sockaddr *)&address, sizeof(address)) < 0){
         perror("Bind failed");
         exit(EXIT_FAILURE);

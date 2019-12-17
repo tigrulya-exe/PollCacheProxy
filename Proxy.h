@@ -90,6 +90,8 @@ private:
     bool allDataHasBeenSent(Connection &clientConnection);
 
     void stop();
+
+    void setSignalHandlers();
 };
 
 #endif
