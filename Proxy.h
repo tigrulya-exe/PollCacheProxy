@@ -45,7 +45,7 @@ private:
 
     void checkClientsConnections();
 
-    HttpRequest parseHttpRequest(Connection &client);
+//    HttpRequest parseHttpRequest(Connection &client);
 
     ConnectionIter removeServerConnection(Connection& connection);
 
@@ -92,6 +92,8 @@ private:
     void stop();
 
     void setSignalHandlers();
+
+    HttpRequest parseHttpRequest(Connection &client, string &newRequest);
 };
 
 #endif

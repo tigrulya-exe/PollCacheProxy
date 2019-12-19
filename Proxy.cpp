@@ -104,13 +104,11 @@ void Proxy::start(){
     }
 }
 
-
-
-HttpRequest Proxy::parseHttpRequest(Connection& client) {
+HttpRequest Proxy::parseHttpRequest(Connection& client, std::string& newRequest) {
     HttpRequest httpRequest;
 
-    const char* path;
-    const char* method;
+    const char *path;
+    const char *method;
     int version;
     size_t methodLen, pathLen;
 
@@ -119,8 +117,8 @@ HttpRequest Proxy::parseHttpRequest(Connection& client) {
                                     &path, &pathLen, &version, httpRequest.headers,
                                     &httpRequest.headersCount, 0);
 
-    if(reqSize == -1){
-        throw ProxyException(errors::BAD_REQUEST);
+    if (reqSize == -1) {
+        throw std::runtime_error("HTTP/1.0 400\r\n\r\nBAD REQUEST\r\n");
     }
 
     std::string onlyPath = path;
@@ -131,16 +129,25 @@ HttpRequest Proxy::parseHttpRequest(Connection& client) {
     onlyMethod.erase(onlyMethod.begin() + methodLen, onlyMethod.end());
     httpRequest.method = onlyMethod;
 
-    for(int i = 0; i < httpRequest.headersCount; ++i){
+    newRequest = onlyMethod + std::string(" ").append(onlyPath).append(" HTTP/1.0") + "\r\n";
+
+    for (int i = 0; i < httpRequest.headersCount; ++i) {
         std::string headerName = httpRequest.headers[i].name;
         headerName.erase(headerName.begin() + httpRequest.headers[i].name_len, headerName.end());
+        std::string headerValue = httpRequest.headers[i].value;
+        headerValue.erase(headerValue.begin() + httpRequest.headers[i].value_len, headerValue.end());
 
-        if(headerName == "Host") {
-            std::string headerValue = httpRequest.headers[i].value;
-            headerValue.erase(headerValue.begin() + httpRequest.headers[i].value_len, headerValue.end());
+        if(headerName == "Connection")
+            continue;
+
+        if (headerName == "Host") {
             httpRequest.host = headerValue;
         }
+
+        newRequest.append(headerName).append(": ").append(headerValue) += "\r\n";
     }
+
+    newRequest += "\r\n\r\n";
 
     return httpRequest;
 }
@@ -210,7 +217,6 @@ Connection Proxy::initServerConnection(Connection& clientConnection, HttpRequest
     return serverConnectionOut;
 }
 
-
 ConnectionIter eraseConnection(std::vector<Connection>& vector, Connection& toRemove){
     return vector.erase(std::remove_if(vector.begin(), vector.end(), [&toRemove](const Connection& connection) {
         return connection.socketFd == toRemove.socketFd;
@@ -245,22 +251,33 @@ bool Proxy::sendDataFromCache(Connection& connection, bool cacheNodeReady){
         throw ProxyException(errors::CACHE_SEND_ERROR);
     }
 
-    if(sendCount)
+//    if(sendCount)
         std::cout << connection.socketFd << " : GOT DATA ( " << sendCount <<  " BYTES) FROM CACHE:" << connection.URl << std::endl;
+
+    if(!sendCount) {
+        std::cout << "ready " << cacheNodeReady << std::endl;
+        std::cout << "OFFSET " << cacheNode.size() - offset << std::endl;
+    }
 
     offset += sendCount;
 
     if(!cacheNodeReady || cacheNode.size() == offset)
-        pollFds[connection.pollFdsIndex].events = -1;
+        pollFds[connection.pollFdsIndex].events = POLLIN;
 
-    return cacheNodeReady && !(cacheNode.size() - offset);
+    return cacheNode.size() == offset;
 }
 
 void Proxy::handleClientDataReceive(Connection& clientConnection){
     if(!receiveDataFromClient(clientConnection))
         return;
 
-    HttpRequest httpRequest = parseHttpRequest(clientConnection);
+    std::string requestWithoutHostHeader;
+
+    HttpRequest httpRequest = parseHttpRequest(clientConnection, requestWithoutHostHeader);
+
+    clientConnection.buffer->clear();
+    *(clientConnection.buffer) = std::vector<char >(requestWithoutHostHeader.begin(), requestWithoutHostHeader.end());
+
     checkRequest(httpRequest);
 
     clientConnection.URl = httpRequest.path;
@@ -346,7 +363,6 @@ bool Proxy::isCorrectResponseStatus(char *response, int responseLength) {
     return status == 200;
 }
 
-
 void Proxy::prepareClientsToWrite(std::string& URL){
     for(auto& client: clientConnections){
         if(client.URl == URL){
@@ -358,6 +374,7 @@ void Proxy::prepareClientsToWrite(std::string& URL){
 void Proxy::receiveDataFromServer(Connection &connection) {
     static char buf[BUF_SIZE];
     int recvCount = receiveData(connection, buf);
+    std::cout << "RECV" << std::endl;
 
     prepareClientsToWrite(connection.URl);
 
@@ -458,6 +475,8 @@ int Proxy::initProxySocket(){
 
 void Proxy::addNewConnection(int sockFd){
     int newSocketFd = accept(sockFd, nullptr, nullptr);
+
+    std::cout << "new connection: " << newSocketFd << std::endl;
 
     if(newSocketFd < 0){
         perror("Error accepting connection");
