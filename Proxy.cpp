@@ -129,7 +129,10 @@ HttpRequest Proxy::parseHttpRequest(Connection& client, std::string& newRequest)
     onlyMethod.erase(onlyMethod.begin() + methodLen, onlyMethod.end());
     httpRequest.method = onlyMethod;
 
+    if(onlyPath == "http://fit.nsu.ru/")
+        onlyPath = "/";
     newRequest = onlyMethod + std::string(" ").append(onlyPath).append(" HTTP/1.0") + "\r\n";
+
 
     for (int i = 0; i < httpRequest.headersCount; ++i) {
         std::string headerName = httpRequest.headers[i].name;
@@ -143,6 +146,9 @@ HttpRequest Proxy::parseHttpRequest(Connection& client, std::string& newRequest)
         if (headerName == "Host") {
             httpRequest.host = headerValue;
         }
+//
+//        if(headerName != "")
+//            continue;
 
         newRequest.append(headerName).append(": ").append(headerValue) += "\r\n";
     }
@@ -277,7 +283,6 @@ void Proxy::handleClientDataReceive(Connection& clientConnection){
 
     clientConnection.buffer->clear();
     *(clientConnection.buffer) = std::vector<char >(requestWithoutHostHeader.begin(), requestWithoutHostHeader.end());
-
     checkRequest(httpRequest);
 
     clientConnection.URl = httpRequest.path;
@@ -374,7 +379,6 @@ void Proxy::prepareClientsToWrite(std::string& URL){
 void Proxy::receiveDataFromServer(Connection &connection) {
     static char buf[BUF_SIZE];
     int recvCount = receiveData(connection, buf);
-    std::cout << "RECV" << std::endl;
 
     prepareClientsToWrite(connection.URl);
 
