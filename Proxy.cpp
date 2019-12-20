@@ -257,13 +257,8 @@ bool Proxy::sendDataFromCache(Connection& connection, bool cacheNodeReady){
         throw ProxyException(errors::CACHE_SEND_ERROR);
     }
 
-//    if(sendCount)
+    if(sendCount)
         std::cout << connection.socketFd << " : GOT DATA ( " << sendCount <<  " BYTES) FROM CACHE:" << connection.URl << std::endl;
-
-    if(!sendCount) {
-        std::cout << "ready " << cacheNodeReady << std::endl;
-        std::cout << "OFFSET " << cacheNode.size() - offset << std::endl;
-    }
 
     offset += sendCount;
 
@@ -333,7 +328,7 @@ void Proxy::checkClientsConnections() {
             iterator = removeClientConnection(clientConnection);
         }
         catch (SocketClosedException& exception){
-            std::cout << "Socket closed: " << clientConnection.URl << std::endl;
+            std::cout << "Socket closed: " << clientConnection.socketFd << std::endl;
             iterator = removeClientConnection(clientConnection);
         }
     }
